@@ -3,13 +3,8 @@
 ;Compile with NESASM3
 ;The game and its source code are released into Public Domain
 
-    .inesprg    2
-    .ineschr    1
-    .inesmir    1
-    .inesmap    0
-
     .bank 0
-    .org $8000
+    .org BANK0_OFFSET
 
 PPU_CTRL		equ $2000
 PPU_MASK		equ $2001
@@ -131,7 +126,7 @@ NMI_DONE		equ 3
 
 FT_BASE_ADR		= $0200	;page in RAM, should be $xx00
 FT_TEMP			= $f0	;7 bytes in zeropage
-FT_DPCM_OFF		= $e000	;$c000 or higher, 64-byte steps
+FT_DPCM_OFF		= DPCM_OFFSET	;$c000 or higher, 64-byte steps
 FT_SFX_STREAMS	= 2		;number of sound effects played at once, can be 4 or less
 FT_DPCM_PTR		= (FT_DPCM_OFF&$3fff)>>6
 
@@ -172,6 +167,9 @@ clearRAM
     sta $700,x
     inx
     bne clearRAM
+    
+    lda #$a0		; set FDS NMI to DFFA
+    sta $100
 
 	lda #NMI_EMPTY
 	jsr setNmiHandler
@@ -1939,20 +1937,20 @@ nmiHandlersList
 	.include "famitone.asm"
 
 	.bank 1
-	.org $a000
+	.org BANK1_OFFSET
 
 	.include "bgm_title.asm"
 	.include "bgm_done.asm"
 	.include "bgm_timeout.asm"
 
     .bank 2
-	.org $c000
+	.org BANK2_OFFSET
 
 	.include "bgm_game.asm"
 	.include "levels.asm"
 
 	.bank 3
-	.org $e000
+	.org BANK3_OFFSET
 
 	.incbin  "bgm_game_dpcm.bin"
 	.include "bgm_game_dpcm.asm"
@@ -2080,15 +2078,8 @@ timeOutTable
 	.db $e3,$00,$00,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$e4
 	.db $e5,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e6,$e7
 
+irq:
+	rti
+
 version
 	.db "Lan Master v1.09 14.06.11"
-
-    .org $fffa
-    .dw  NMI_CALL
-    .dw  reset
-	.dw  0
-
-
-    .bank 4
-    .org $0000
-    .incbin "patterns.chr"

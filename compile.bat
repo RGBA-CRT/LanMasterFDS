@@ -1,7 +1,6 @@
 :label
-..\nesasm.exe game.asm
-del game.fns
+call compile_nes.bat
+call compile_fds.bat
 pause
-start game.nes
-pause
+
 goto:label
